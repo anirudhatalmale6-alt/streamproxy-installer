@@ -6,7 +6,7 @@
 #          bash install.sh myproxy.com proxy
 # =============================================================================
 
-set -euo pipefail
+set -eo pipefail
 
 # ── Parse arguments ──────────────────────────────────────────────────────────
 DOMAIN="${1:-}"
@@ -51,7 +51,14 @@ echo ""
 echo "=== [1/9] Installing system packages ==="
 apt-get update -qq
 
-apt-get install -y -qq \
+apt-get install -y -qq software-properties-common 2>/dev/null
+if ! apt-cache show "php${PHP_VER}-fpm" &>/dev/null; then
+    echo "  Adding PHP PPA..."
+    add-apt-repository -y ppa:ondrej/php 2>/dev/null
+    apt-get update -qq
+fi
+
+apt-get install -y \
     nginx \
     mysql-server \
     php${PHP_VER}-fpm \
@@ -67,9 +74,9 @@ apt-get install -y -qq \
     php${PHP_VER}-readline \
     unzip \
     curl \
+    git \
     certbot \
-    python3-certbot-nginx \
-    2>/dev/null
+    python3-certbot-nginx
 
 if ! command -v composer &>/dev/null; then
     echo "  Installing Composer..."
