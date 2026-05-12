@@ -154,6 +154,7 @@ copy_if_exists "database/migrations/2026_05_02_000000_create_links_table.php" \
     "${WEBROOT}/database/migrations/2026_05_02_000000_create_links_table.php"
 
 copy_dir_if_exists "app/Orchid" "${WEBROOT}/app/Orchid"
+copy_dir_if_exists "resources/views/orchid" "${WEBROOT}/resources/views/orchid"
 
 echo "  Done."
 
