@@ -158,14 +158,27 @@ copy_dir_if_exists "resources/views/orchid" "${WEBROOT}/resources/views/orchid"
 
 echo "  Done."
 
-# ── 6. Register ProxyServiceProvider ─────────────────────────────────────────
-echo "=== [6/9] Registering providers ==="
+# ── 6. Register ProxyServiceProvider + Stream Routes ─────────────────────────
+echo "=== [6/9] Registering providers + routes ==="
 PROVIDERS_FILE="${WEBROOT}/bootstrap/providers.php"
 if ! grep -q 'ProxyServiceProvider' "${PROVIDERS_FILE}"; then
     sed -i "s|App\\\\Providers\\\\AppServiceProvider::class,|App\\\\Providers\\\\AppServiceProvider::class,\n    App\\\\Providers\\\\ProxyServiceProvider::class,|" "${PROVIDERS_FILE}"
     echo "  ProxyServiceProvider registered."
 else
     echo "  Already registered."
+fi
+
+APP_BOOT="${WEBROOT}/bootstrap/app.php"
+if ! grep -q 'stream.php' "${APP_BOOT}"; then
+    # Add Route facade import
+    if ! grep -q 'use Illuminate\\Support\\Facades\\Route;' "${APP_BOOT}"; then
+        sed -i "s|use Illuminate\\\\Foundation\\\\Application;|use Illuminate\\\\Foundation\\\\Application;\nuse Illuminate\\\\Support\\\\Facades\\\\Route;|" "${APP_BOOT}"
+    fi
+    # Add stream routes via then callback
+    sed -i "s|health: '/up',|health: '/up',\n        then: function () {\n            Route::middleware('web')->group(base_path('routes/stream.php'));\n        },|" "${APP_BOOT}"
+    echo "  Stream routes registered."
+else
+    echo "  Stream routes already registered."
 fi
 
 # ── 7. Configure .env ────────────────────────────────────────────────────────
